@@ -1,0 +1,54 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
+
+public class Puzzlemanager : MonoBehaviour
+{
+    [Header("Configuração da Sequência")]
+    public int[] sequenciaCorreta = { 0, 1, 2 };
+
+    private int indiceAtual = 0;
+
+    [Header("Eventos")]
+    public UnityEvent aoCompletarPuzzle;
+    public UnityEvent aoErrarPuzzle;
+
+    public string PuzzleCompleto;
+    public string PuzzleErrado;
+
+    public void BotaoPressionado(int numeroBotao)
+    {
+        // Verifica se o botão pressionado está correto
+        if (numeroBotao == sequenciaCorreta[indiceAtual])
+        {
+            indiceAtual++;
+
+            // Se completou toda a sequência
+            if (indiceAtual >= sequenciaCorreta.Length)
+            {
+                Debug.Log("Puzzle Resolvido!");
+                aoCompletarPuzzle.Invoke();
+                indiceAtual = 0;
+                AcertouPuzzle();
+            }
+        }
+        else
+        {
+            Debug.Log("Sequência Errada!");
+            aoErrarPuzzle.Invoke();
+            indiceAtual = 0;
+            ErrouPuzzle();
+        }
+        
+    }
+    public void ErrouPuzzle()//Errou o puzzle
+    {
+        SceneManager.LoadScene(PuzzleErrado);
+    }
+    public void AcertouPuzzle()//Acertou o puzzle
+    {
+        SceneManager.LoadScene(PuzzleCompleto);
+    }
+}
