@@ -1,0 +1,577 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+//using UnityEngine.UIElements;
+public class MoveEricaFaseDois : MonoBehaviour
+{
+    public float velocidadeDaErica = 4f;
+    public Animator animator;
+    private Rigidbody rb;
+
+    // ================= VIDA =================
+    public Slider slider;
+    //public Slider sliderB;
+    public int vidaMaxima = 100;
+    public int vidAtual;
+
+    [Header("Controle de Vida por Tempo")]
+    public float tempoPerdeVidaAndando = 1f;
+    public float tempoGanhaVidaParado = 2f;
+    private float timerVida = 0f;
+
+    // ================= CHAVES =================
+    public bool chaveA, chaveB, chaveC, chaveD, chaveE, chaveF;
+    public bool chaveG, chaveH, chaveI, chaveJ, chaveK, chaveL;
+    public bool chaveM, chaveN;
+
+    // ================= RELÓGIOS =================
+    public int relogios = 0;
+    public TextMeshProUGUI relogiosText;
+
+    // ================= CENARIOS =================
+    public string GameOver;
+    public string MenuFinalB;
+    public string FaseDois;
+    public string FaseTres;
+
+
+    // ================= CONTROLE DE FASES =================
+    public bool paraAFaseDois = false;
+    public bool paraAFaseTres = false;
+    //public string FaseDois;
+    //public string FaseTres;
+
+    // ================= CRONOMETRO =================
+    public TextMeshProUGUI cronometroText;
+    public float tempo = 0f;
+    public bool contandoParaFrente = true;
+
+    // ================= SOM =================
+    public AudioSource audioSource;
+    public AudioClip somChave;
+    public AudioClip somDaPortaAberta;
+    public AudioClip somDaPortaFechada;
+    public AudioClip somDoRelogio;
+
+    // ================= TIRO =================
+    [Header("Sistema de Tiro")]
+    public GameObject prefabTiro;
+    public Transform pontoDeTiro;
+    public float intervaloEntreTiros = 0.3f;
+    private float proximoTiro;
+    public Vector3 ultimaDirecao = Vector3.forward;
+
+    // ================= PUZZLE =================
+    public Slider slider2B;
+    public int puzzleMaxima = 100;
+    public int puzzletual;
+
+    // ================= ITENS DO PUZZLE =================
+    public int movimentoDoPlayer = 0;
+    public int coletaDeItens = 0;
+    //public int movimentoDoPlayer1 = 0;
+    public int sistemaDePortas = 0;
+    public int cronometroRegressivo = 0;
+    public int barraDeVida = 0;
+    public int sistemadeSave = 0;
+    public int sistemaDeColisao = 0;
+    public int SistemadeMenu = 0;
+    public int sistemaDeAudio = 0;//PAREI AQUI//O CODIOGO NAO TA PRONTO AINDA!
+
+    void Start()
+    {
+        rb = GetComponent<Rigidbody>();
+        animator = GetComponent<Animator>();
+
+        vidAtual = vidaMaxima;
+        tempo = 0f;
+        AtualizarTexto();
+
+        if (slider != null)//Slider vida
+        {
+            slider.maxValue = vidaMaxima;
+            slider.value = vidAtual;
+        }
+        if (slider2B != null)//Slider Puzzle
+        {
+            slider2B.maxValue = puzzleMaxima;
+            slider2B.value = puzzletual;
+        }
+
+    }
+    public void GanhaPuzzle(int ganhaPuzzle)//Slider Puzzle
+    {
+        puzzletual += ganhaPuzzle;
+        puzzletual = Mathf.Clamp(puzzletual, 0, puzzleMaxima);
+        AtualizaPuzzle();
+
+        Debug.Log("Puzzle atual: " + puzzletual);
+
+        if (puzzletual >= 30)
+        {
+            Debug.Log("Primeira parte do puzzle liberada!");
+        }
+
+        if (puzzletual >= 100)
+        {
+            Debug.Log("Puzzle completo!");
+        }
+    }
+
+    public void AtualizaPuzzle()//Atualiza o Slider puzzle
+    {
+        if (slider2B != null)
+        {
+            slider2B.value = puzzletual;
+        }
+    }
+
+    void Update()
+    {
+        //BOTOES
+        if (Input.GetKeyDown(KeyCode.Z))//Salvar
+        {
+            SaveGame();
+        }
+        if (Input.GetKeyDown(KeyCode.X))//Carregar
+        {
+            LoadGame();
+        }
+        // TIRO
+        if (Input.GetKeyDown(KeyCode.V) && Time.time >= proximoTiro)
+        {
+            Atirar();
+            proximoTiro = Time.time + intervaloEntreTiros;
+        }
+
+        AtualizarAnimacao();
+        ControleVidaPorMovimento();
+
+        if (vidAtual <= 0)
+            SceneManager.LoadScene(GameOver);
+
+        // CRONOMETRO
+        tempo += Time.deltaTime;
+
+        if (tempo >= 480)
+            SceneManager.LoadScene(GameOver);
+
+        AtualizarTexto();
+    }
+
+    void FixedUpdate()
+    {
+        Movimento();
+    }
+
+    // ================= MOVIMENTO =================
+    void Movimento()
+    {
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+
+        Vector3 direcao = new Vector3(h, 0, v).normalized;
+        Vector3 velocidade = direcao * velocidadeDaErica;
+
+        rb.velocity = new Vector3(velocidade.x, rb.velocity.y, velocidade.z);
+
+        if (direcao != Vector3.zero)
+        {
+            ultimaDirecao = direcao;
+            transform.forward = direcao;
+        }
+    }
+
+    // ================= ANIMAÇÃO =================
+    void AtualizarAnimacao()
+    {
+        Vector3 vel = rb.velocity;
+        vel.y = 0;
+        animator.SetBool("Andar", vel.magnitude > 0.1f);
+    }
+
+    // ================= VIDA POR MOVIMENTO =================
+    void ControleVidaPorMovimento()
+    {
+        Vector3 vel = rb.velocity;
+        vel.y = 0;
+
+        bool estaAndando = vel.magnitude > 0.1f;
+        timerVida += Time.deltaTime;
+
+        if (estaAndando && timerVida >= tempoPerdeVidaAndando)
+        {
+            PerdeVida(1);
+            timerVida = 0f;
+        }
+        else if (!estaAndando && timerVida >= tempoGanhaVidaParado)
+        {
+            GanhaVida(1);
+            timerVida = 0f;
+        }
+    }
+
+    // ================= VIDA =================
+    public void PerdeVida(int dano)
+    {
+        vidAtual -= dano;
+        vidAtual = Mathf.Clamp(vidAtual, 0, vidaMaxima);
+        AtualizaVida();
+    }
+
+    public void GanhaVida(int ganho)
+    {
+        vidAtual += ganho;
+        vidAtual = Mathf.Clamp(vidAtual, 0, vidaMaxima);
+        AtualizaVida();
+    }
+
+    void AtualizaVida()
+    {
+        if (slider != null)
+            slider.value = vidAtual;
+    }
+
+    // ================= CRONOMETRO =================
+    void AtualizarTexto()
+    {
+        int minutos = Mathf.FloorToInt(tempo / 60);
+        int segundos = Mathf.FloorToInt(tempo % 60);
+        cronometroText.text = $"TEMPO: {minutos:00}:{segundos:00}";
+    }
+
+    // ================= TIRO =================
+    void Atirar()
+    {
+        if (prefabTiro == null || pontoDeTiro == null)
+            return;
+
+        Instantiate(
+            prefabTiro,
+            pontoDeTiro.position,
+            Quaternion.LookRotation(ultimaDirecao)
+        );
+    }
+    // ================= RELÓGIOS =================
+    public void RelogiosText()
+    {
+        relogiosText.text = "RELÓGIOS: " + relogios;
+    }
+    void SaveGame()//Salva o jogo
+    {
+        PlayerPrefs.SetInt("relogios", relogios);
+        PlayerPrefs.SetInt("chaveA", chaveA ? 1 : 0);
+        PlayerPrefs.SetInt("chaveB", chaveB ? 1 : 0);
+        PlayerPrefs.SetInt("chaveC", chaveC ? 1 : 0);
+        PlayerPrefs.SetInt("chaveD", chaveD ? 1 : 0);
+        PlayerPrefs.SetInt("chaveE", chaveE ? 1 : 0);
+        PlayerPrefs.SetInt("chaveF", chaveF ? 1 : 0);
+        PlayerPrefs.SetInt("chaveG", chaveG ? 1 : 0);
+        PlayerPrefs.SetInt("chaveH", chaveH ? 1 : 0);
+        PlayerPrefs.SetInt("chaveI", chaveI ? 1 : 0);
+        PlayerPrefs.SetInt("chaveJ", chaveJ ? 1 : 0);
+        PlayerPrefs.SetInt("chaveK", chaveK ? 1 : 0);
+        PlayerPrefs.SetInt("chaveL", chaveL ? 1 : 0);
+        PlayerPrefs.SetInt("chaveM", chaveM ? 1 : 0);
+        PlayerPrefs.SetInt("chaveN", chaveN ? 1 : 0);
+        PlayerPrefs.SetFloat("playerPosX", transform.position.x);
+        PlayerPrefs.SetFloat("playerPosY", transform.position.y);
+        PlayerPrefs.SetFloat("playerPosZ", transform.position.z);
+        PlayerPrefs.SetFloat("tempo", tempo);
+        PlayerPrefs.SetInt("vidaAtual", vidAtual);
+        PlayerPrefs.Save();
+        Debug.Log("Jogo salvo com sucesso!");
+    }
+    void LoadGame()//Carrega o jogo
+    {
+        if (!PlayerPrefs.HasKey("playerPosX"))
+        {
+            Debug.Log("Nenhum save encontrado!");
+            return;
+        }
+
+        // Carrega relógios
+        relogios = PlayerPrefs.GetInt("relogios", 0);
+        chaveA = PlayerPrefs.GetInt("chaveA", 0) == 1;
+        chaveB = PlayerPrefs.GetInt("chaveB", 0) == 1;
+        chaveC = PlayerPrefs.GetInt("chaveC", 0) == 1;
+        chaveA = PlayerPrefs.GetInt("chaveD", 0) == 1;
+        chaveB = PlayerPrefs.GetInt("chaveE", 0) == 1;
+        chaveC = PlayerPrefs.GetInt("chaveF", 0) == 1;
+        chaveA = PlayerPrefs.GetInt("chaveG", 0) == 1;
+        chaveB = PlayerPrefs.GetInt("chaveH", 0) == 1;
+        chaveC = PlayerPrefs.GetInt("chaveI", 0) == 1;
+        chaveA = PlayerPrefs.GetInt("chaveJ", 0) == 1;
+        chaveB = PlayerPrefs.GetInt("chaveK", 0) == 1;
+        chaveC = PlayerPrefs.GetInt("chaveL", 0) == 1;
+        chaveC = PlayerPrefs.GetInt("chaveM", 0) == 1;
+        chaveC = PlayerPrefs.GetInt("chaveN", 0) == 1;
+        vidAtual = PlayerPrefs.GetInt("vidaAtual");
+        tempo = PlayerPrefs.GetFloat("tempo");
+        RelogiosText();
+
+        // Carrega posição do player
+        float x = PlayerPrefs.GetFloat("playerPosX");
+        float y = PlayerPrefs.GetFloat("playerPosY");
+        float z = PlayerPrefs.GetFloat("playerPosZ");
+
+        // IMPORTANTE: zera a velocidade antes de mover
+        rb.velocity = Vector3.zero;
+
+        transform.position = new Vector3(x, y, z);
+
+
+
+        Debug.Log("Jogo carregado com sucesso!");
+
+        Camera.main.transform.position = new Vector3(transform.position.x, Camera.main.transform.position.y, transform.position.z);
+
+
+
+
+    }
+    // ================= COLETORES / PORTAS =================
+    public void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("RelogiosPegos"))
+        {
+            relogios++;
+            tempo -= 15;
+            GanhaPuzzle(30); // AQUI está o aumento correto
+            RelogiosText();
+            audioSource.PlayOneShot(somDoRelogio);
+            other.gameObject.SetActive(false);
+        }
+
+        if (other.CompareTag("ChaveA")) { chaveA = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveB")) { chaveB = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveC")) { chaveC = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveD")) { chaveD = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveE")) { chaveE = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveF")) { chaveF = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveG")) { chaveG = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveH")) { chaveH = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveI")) { chaveI = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveJ")) { chaveJ = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveK")) { chaveK = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveL")) { chaveL = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveM")) { chaveM = true; TocarSomChave(); other.gameObject.SetActive(false); }
+        if (other.CompareTag("ChaveN")) { chaveN = true; TocarSomChave(); other.gameObject.SetActive(false); }
+
+        //PORTAS
+        //PORTANFIM
+        if (other.CompareTag("PortaN"))//Abre a Porta N
+        {
+            //QUEBRA OBSTACULO
+            if (other.CompareTag("Caixa"))
+            {
+                other.gameObject.SetActive(false);//Quebra o obstaculo
+            }
+
+            //PORTANAbre
+            if (relogios >= 13)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+                SceneManager.LoadScene(FaseTres);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAM
+        if (other.CompareTag("PortaM"))//Abre a Porta M
+        {
+            if (chaveM == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAL
+        if (other.CompareTag("PortaL"))//Abre a Porta L
+        {
+            if (chaveL == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAK
+        if (other.CompareTag("PortaK"))//Abre a Porta K
+        {
+            if (chaveK == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAJ
+        if (other.CompareTag("PortaJ"))//Abre a Porta J
+        {
+            if (chaveJ == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAI
+        if (other.CompareTag("PortaI"))//Abre a Porta I
+        {
+            if (chaveI == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAH
+        if (other.CompareTag("PortaH"))//Abre a Porta H
+        {
+            if (chaveH == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAG
+        if (other.CompareTag("PortaG"))//Abre a Porta G
+        {
+            if (chaveG == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PORTAF
+        if (other.CompareTag("PortaF"))//Abre a Porta F
+        {
+            if (chaveF == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PortaE
+        if (other.CompareTag("PortaE"))//Abre a Porta E
+        {
+            if (chaveE == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //PortaD
+        if (other.CompareTag("PortaD"))//Abre a Porta D
+        {
+            if (chaveD == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+        //Porta C
+        if (other.CompareTag("PortaC"))//Abre a Porta C
+        {
+            if (chaveC == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+
+        //Porta B
+        if (other.CompareTag("PortaB"))//Abre a Porta B
+        {
+            if (chaveB == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+
+        //Porta A
+        if (other.CompareTag("PortaA"))//Abre a Porta A
+        {
+            if (chaveA == true)
+            {
+                audioSource.PlayOneShot(somDaPortaAberta);
+                other.gameObject.SetActive(false);
+            }
+            else
+            {
+                audioSource.PlayOneShot(somDaPortaFechada);
+            }
+        }
+    }
+    //SOM DA CHAVE
+    void TocarSomChave()
+    {
+        if (audioSource != null && somChave != null)
+        {
+            audioSource.PlayOneShot(somChave);
+        }
+    }
+    //EMPURRA CAIXAS
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Empurravel"))
+        {
+            Rigidbody rb = collision.rigidbody;
+
+            Vector3 direcao = collision.contacts[0].normal * -1;
+            direcao.y = 0;
+
+            rb.AddForce(direcao * 4f, ForceMode.Force);
+        }
+    }
+}
