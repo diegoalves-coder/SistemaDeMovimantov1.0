@@ -1,0 +1,176 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class MenuManager : MonoBehaviour
+{
+    public string jogar;
+    public string menuInicial;
+
+    public string FaseUm;
+    public string FaseDois;
+    public string FaseTres;
+    public string FaseQuatro;
+    public string FaseCinco;
+    public string FaseSeis;
+    public string FaseSete;
+    public string FaseOito;
+    public string FaseNove;
+    public string Voltar;
+    public string MenuFases;
+    public string MenuGDDA;
+    public string MenuGDDB;
+    public string MenuGDDC;
+    public string MenuGDDD;
+    public string MenuGDDE;
+    public string MenuGDDF;
+    public string MenuAudio1;
+    public string MenuAudio2;
+    public string MenuAudio3;
+    public string MenuAudio4;
+    public string MenuAudio5;
+    public string MenuAudio6;
+    public string MenuResumo;
+    // Start is called before the first frame update
+    void Start()
+    {
+        //Nao uso
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //Nao uso
+    }
+    //JOGAR
+    public void Jogar()//Entra no jogo
+    {
+        SceneManager.LoadScene(jogar);
+        Debug.Log("Entrou no Jogo com sucesso!");
+    }
+    //SAIR
+    public void Sair()//Sai do jogo
+    { 
+        Application.Quit();
+        Debug.Log("Programa fechado com sucesso!");
+    }
+    //MENU INICIAL
+    public void MenuInicial()//Volta para o Menu Inicial
+    {
+        SceneManager.LoadScene(menuInicial);
+        Debug.Log("Entrou no Menu Inicial com sucesso!");
+    }
+    //PLAY
+    public void Tocar()//Toca o audio da radio
+    {
+
+    }
+    //PARAR
+    public void Parar()//Para o audio da radio
+    {
+
+    }
+    //MENU DE FASES
+    public void Fase1()//Vai para a fase 1
+    {
+        SceneManager.LoadScene(FaseUm);
+    }
+    public void Fase2()//Vai para a fase 2
+    {
+        SceneManager.LoadScene(FaseDois);
+    }
+    public void Fase3()//Vai para a fase 3
+    {
+        SceneManager.LoadScene(FaseTres);
+    }
+    public void Fase4()//Vai para a fase 4
+    {
+        SceneManager.LoadScene(FaseQuatro);
+    }
+    public void Fase5()//Vai para a fase 5
+    {
+        SceneManager.LoadScene(FaseCinco);
+    }
+    public void Fase6()//Vai para a fase 6
+    {
+        SceneManager.LoadScene(FaseSeis);
+    }
+    public void Fase7()//Vai para a fase 7
+    {
+        SceneManager.LoadScene(FaseSete);
+    }
+    public void Fase8()//Vai para a fase 8
+    {
+        SceneManager.LoadScene(FaseOito);
+    }
+    public void Fase9()//Vai para a fase 9
+    {
+        SceneManager.LoadScene(FaseNove);
+    }
+    public void VoltarB()//Vai para a fase 9
+    {
+        SceneManager.LoadScene(Voltar);
+    }
+    public void Fases()//Vai para o MenuFases
+    {
+        SceneManager.LoadScene(MenuFases);
+    }
+    //GDD
+    public void GDDA()//Vai para o MenuGDDA
+    {
+        SceneManager.LoadScene(MenuGDDA);
+    }
+    public void GDDB()//Vai para o MenuGDDB
+    {
+        SceneManager.LoadScene(MenuGDDB);
+    }
+    public void GDDC()//Vai para o MenuGDDC
+    {
+        SceneManager.LoadScene(MenuGDDC);
+    }
+    public void GDDD()//Vai para o MenuGDDD
+    {
+        SceneManager.LoadScene(MenuGDDD);
+    }
+    public void GDDE()//Vai para o MenuGDDE
+    {
+        SceneManager.LoadScene(MenuGDDE);
+    }
+    public void GDDF()//Vai para o MenuGDDF
+    {
+        SceneManager.LoadScene(MenuGDDF);
+    }
+    //MENU AUDIO
+    public void Audio1()//Vai para o MenuAudio1
+    {
+        SceneManager.LoadScene(MenuAudio1);
+    }
+    public void Audio2()//Vai para o MenuAudio2
+    {
+        SceneManager.LoadScene(MenuAudio2);
+    }
+    public void Audio3()//Vai para o MenuAudio3
+    {
+        SceneManager.LoadScene(MenuAudio3);
+    }
+    public void Audio4()//Vai para o MenuAudio4
+    {
+        SceneManager.LoadScene(MenuAudio4);
+    }
+    public void Audio5()//Vai para o MenuAudio5
+    {
+        SceneManager.LoadScene(MenuAudio5);
+    }
+    public void Audio6()//Vai para o MenuAudio6
+    {
+        SceneManager.LoadScene(MenuAudio6);
+    }
+    public void MenuResumoComeço()//Vai para o MenuResumo
+    {
+        SceneManager.LoadScene(MenuResumo);
+    }
+
+
+
+}
