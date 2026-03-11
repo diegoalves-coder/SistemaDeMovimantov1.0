@@ -1,0 +1,90 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine;
+
+public class PuzzleManagerDois : MonoBehaviour
+{
+    public Button[] botoes;
+    public Slider[] sliders;
+
+    public Button botaoProximo;
+
+    private int[] sequenciaCorreta = { 2, 5, 1, 7, 0, 8, 3, 4, 6 };
+
+    private int indiceAtual = 0;
+    public string FaseDois;
+    public string FaseTres;
+
+
+    void Start()
+    {
+        botaoProximo.interactable = false;
+
+        for (int i = 0; i < sliders.Length; i++)
+        {
+            sliders[i].minValue = 0;
+            sliders[i].maxValue = 100;
+            sliders[i].value = 0;
+        }
+    }
+
+    public void PressionarBotao(int numeroBotao)
+    {
+        if (numeroBotao == sequenciaCorreta[indiceAtual])
+        {
+            StartCoroutine(EncherSlider(sliders[numeroBotao]));
+
+            indiceAtual++;
+
+            if (indiceAtual >= sequenciaCorreta.Length)
+            {
+                PuzzleCompleto();
+            }
+        }
+        else
+        {
+            ResetarPuzzle();
+        }
+    }
+
+    IEnumerator EncherSlider(Slider slider)
+    {
+        float valor = 0;
+
+        while (valor < 100)
+        {
+            valor += 30 * Time.deltaTime; // velocidade do enchimento
+            slider.value = valor;
+
+            yield return null;
+        }
+
+        slider.value = 100;
+    }
+
+    void PuzzleCompleto()
+    {
+        botaoProximo.interactable = true;
+        Debug.Log("Puzzle completo!");
+        //SceneManager.LoadScene(FaseTres);
+    }
+
+    void ResetarPuzzle()
+    {
+        indiceAtual = 0;
+
+        for (int i = 0; i < sliders.Length; i++)
+        {
+            sliders[i].value = 0;
+        }
+
+        Debug.Log("Sequência errada!");
+        SceneManager.LoadScene(FaseDois);
+    }
+    public void Proximo()
+    {
+        SceneManager.LoadScene(FaseTres);
+    }
+}
