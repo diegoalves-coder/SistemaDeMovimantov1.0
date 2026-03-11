@@ -1,0 +1,41 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Tiro : MonoBehaviour
+{
+    public float velocidade = 10f;
+    public float tempoDeVida = 3f;
+    //public AudioSource audioSource;
+    //public AudioClip somDaCaixa;
+
+    void Start()
+    {
+        Destroy(gameObject, tempoDeVida);
+    }
+
+    void Update()
+    {
+        transform.position += transform.forward * velocidade * Time.deltaTime;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        // Ignora o Player
+        if (other.CompareTag("Player"))
+            return;
+
+        // SE for ALVO → destrói
+        if (other.CompareTag("Caixa"))
+        {
+            SomDaCaixa caixa = other.GetComponent<SomDaCaixa>();
+            if (caixa != null)
+            {
+                caixa.Atingido();
+            }
+        }
+
+        // Qualquer colisão destrói o tiro
+        Destroy(gameObject);
+    }
+}
