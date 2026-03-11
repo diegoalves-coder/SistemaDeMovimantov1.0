@@ -1,0 +1,23 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SomDaCaixa : MonoBehaviour
+{
+    public AudioClip somAoSerAtingido;
+    public float volume = 0.5f;
+
+    public void Atingido()
+    {
+        GameObject som = new GameObject("SomAlvo");
+        AudioSource audio = som.AddComponent<AudioSource>();
+
+        audio.clip = somAoSerAtingido;
+        audio.volume = volume;
+        audio.spatialBlend = 0f; // 🔥 SOM 2D
+        audio.Play();
+
+        Destroy(som, somAoSerAtingido.length);
+        Destroy(gameObject);
+    }
+}
